@@ -1,4 +1,3 @@
-
 /* Includes ------------------------------------------------------------------*/
 // #include sensor
 #include "stdio.h"
@@ -42,6 +41,7 @@ void FrameUART(void);
 void Convertvalue(void);
 void CheckUART(void);
 void IAQcolor(void);
+void FormInterface(void);
 
 char buffer[20],buffer1[20],buffer2[20],buffer3[20],buffer4[20],buffer5[20];
 int tmpInt1,tmpInt2; // Get the integer (123).
@@ -143,20 +143,19 @@ int main(void)
     ctrmode = 1;
     filmode = 1;
     nightmode = 0;
-    BACK_COLOR=BLACK;
-    POINT_COLOR=BLUE;
-    tft_puts14x24(220,3,(int8_t*)"SPEED: MEDIUM",TFT_STRING_MODE_BACKGROUND);
-    tft_puts14x24(260,3,(int8_t*)"Filter:Fresh_air     ",TFT_STRING_MODE_BACKGROUND);
-    tft_puts14x24(240,3,(int8_t*)"NIGHT MODE: ON        ",TFT_STRING_MODE_BACKGROUND);
+    //FormInterface();
+    //tft_puts14x24(220,100,(int8_t*)"MEDIUM",TFT_STRING_MODE_BACKGROUND);
+    //tft_puts14x24(260,100,(int8_t*)"FRESH_AIR     ",TFT_STRING_MODE_BACKGROUND);
+    //tft_puts14x24(240,160,(int8_t*)"ON        ",TFT_STRING_MODE_BACKGROUND);
     BACK_COLOR=BLACK;
    	POINT_COLOR=RED;
-   	tft_puts14x24(200,3,(int8_t*)"POWER: ON  ",TFT_STRING_MODE_BACKGROUND);
-   	tft_puts14x24(280,3,(int8_t*)"Mode CTRL:Manual   ",TFT_STRING_MODE_BACKGROUND);
+   	//tft_puts14x24(200,100,(int8_t*)"ON  ",TFT_STRING_MODE_BACKGROUND);
+   	//tft_puts14x24(280,150,(int8_t*)"MANUAL   ",TFT_STRING_MODE_BACKGROUND);
 
     // Mở van hoạt động ở chế độ trao đổi khí tươi
    	fan_1_run(40);
    	fan_2_run(40);
-
+   	HAL_TIM_Base_Start_IT(&htim2);
 
   while (1)
   {
@@ -172,8 +171,8 @@ int main(void)
 	  count++;
 	  sprintf(buffer5,"%d",count);
 
-      //BACK_COLOR=BLACK;
-	 // POINT_COLOR=GREEN;
+      BACK_COLOR=BLACK;
+	  POINT_COLOR=GREEN;
 	  IAQcolor();
 	  tft_draw_circle(100,120,60);
 	  tft_draw_circle(100,120,61);
@@ -186,6 +185,8 @@ int main(void)
 	  tft_puts14x24(115,100,(int8_t*)buffer5,TFT_STRING_MODE_BACKGROUND);
 	  POINT_COLOR=GBLUE;
 	  tft_puts8x16(17,3,(int8_t*)"VIETTEL HIGH TECHNOLOGY",TFT_STRING_MODE_NO_BACKGROUND);
+	  FormInterface();
+
   }
   /* USER CODE END 3 */
 }
@@ -195,7 +196,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     uint8_t i;
     if (huart->Instance == USART1)  //Xét UART nhận dữ liệu
         {
-        if (Rx_indx==0) {for (i=0;i<100;i++) Rx_Buffer[i]=0;}   //clear Rx_buffer trước khi nhận dữ liệu mới
+        if (Rx_indx==0 && Transfer_cplt==0) {for (i=0;i<100;i++) Rx_Buffer[i]=0;}   //clear Rx_buffer trước khi nhận dữ liệu mới
 
         if (Rx_data[0]!='\n') //Nếu nhận dữ liệu là khác dấu xuống dòng
             {
@@ -214,11 +215,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 /* Hàm chuyển đổi giá trị của giá trị float PM2.5, nhiệt độ, độ ẩm để đưa vào khung truyền UART */
 void Convertvalue(void){
-	PM25 = 32.14;
+	PM25 = 22.33;
 	tmpIntPM1 = (int)PM25;
 	float tmpFPM = PM25 - tmpIntPM1;
 	tmpIntPM2 = trunc(tmpFPM * 100);
-	temperature = 6543;
+	temperature = 9977;
 	temp = (float)(temperature/1000.0f);
 	tmpIntte1 = (int)temp;
 	float tmpT = temp - tmpIntte1;
@@ -312,7 +313,7 @@ void CheckUART(void){
 
 			  BACK_COLOR=BLACK;
 			  POINT_COLOR=ORANGE;
-			  tft_puts14x24(220,3,(int8_t*)"SPEED: HIGH     ",TFT_STRING_MODE_BACKGROUND);
+			  tft_puts14x24(220,100,(int8_t*)"HIGH     ",TFT_STRING_MODE_BACKGROUND);
 			  speed = 3;
 			  fan_1_run(0);
 			  fan_2_run(0);
@@ -322,7 +323,7 @@ void CheckUART(void){
 
 			  BACK_COLOR=BLACK;
 			  POINT_COLOR=BLUE;
-			  tft_puts14x24(220,3,(int8_t*)"SPEED: LOW      ",TFT_STRING_MODE_BACKGROUND);
+			  tft_puts14x24(220,100,(int8_t*)"LOW      ",TFT_STRING_MODE_BACKGROUND);
 			  speed = 1;
 			  fan_1_run(70);
 			  fan_2_run(70);
@@ -332,7 +333,7 @@ void CheckUART(void){
 
 			  BACK_COLOR=BLACK;
 			  POINT_COLOR=GRAY;
-			  tft_puts14x24(220,3,(int8_t*)"SPEED: MEDIUM",TFT_STRING_MODE_BACKGROUND);
+			  tft_puts14x24(220,100,(int8_t*)"MEDIUM",TFT_STRING_MODE_BACKGROUND);
 			  speed = 2;
 			  fan_1_run(40);
 			  fan_2_run(40);
@@ -344,14 +345,16 @@ void CheckUART(void){
 
 			 BACK_COLOR=BLACK;
 			 POINT_COLOR=RED;
-			 tft_puts14x24(200,3,(int8_t*)"POWER: ON     ",TFT_STRING_MODE_BACKGROUND);
+			// tft_puts14x24(200,100,(int8_t*)"ON     ",TFT_STRING_MODE_BACKGROUND);
 			 BACK_COLOR=BLACK;
 			 POINT_COLOR=GRAY;
-			 tft_puts14x24(220,3,(int8_t*)"SPEED: MEDIUM",TFT_STRING_MODE_BACKGROUND);
+			// tft_puts14x24(220,100,(int8_t*)"MEDIUM",TFT_STRING_MODE_BACKGROUND);
 			 power = 1;
 			 speed = 2;
 			 fan_1_run(40);
 			 fan_2_run(40);
+			 num = 1;
+			 __HAL_TIM_SET_COUNTER(&htim2, 0);
 			 // Set tốc độ động cơ PWM ở đây
 			 // Set van khí ở đây
 		 }
@@ -359,15 +362,63 @@ void CheckUART(void){
 
 			 BACK_COLOR=BLACK;
 			 POINT_COLOR=BLUE;
-			 tft_puts14x24(200,3,(int8_t*)"POWER: OFF      ",TFT_STRING_MODE_BACKGROUND);
-			 tft_puts14x24(220,3,(int8_t*)"SPEED: OFF      ",TFT_STRING_MODE_BACKGROUND);
+			 //tft_puts14x24(200,100,(int8_t*)"OFF      ",TFT_STRING_MODE_BACKGROUND);
+			// tft_puts14x24(220,100,(int8_t*)"OFF      ",TFT_STRING_MODE_BACKGROUND);
 			 power = 0;
 			 speed = 0;
 			 fan_1_run(100);
 			 fan_2_run(100);
+			 num = 2;
+			 __HAL_TIM_SET_COUNTER(&htim2, 0);
 			 //Tắt động cơ và đóng van khí ở đây
 		 }
 	 }
+	 for (int i =0; i<=strlen(Rx_Buffer); i++){
+	 		 if(Rx_Buffer[i] =='n' && Rx_Buffer[i+1]=='i'&& Rx_Buffer[i+2]=='g'){
+	 			 BACK_COLOR=BLACK;
+	 			 POINT_COLOR=BLUE;
+	 			 tft_puts14x24(240,160,(int8_t*)"ON    ",TFT_STRING_MODE_BACKGROUND);
+	 			 nightmode = 1;
+	 			 fan_1_run(70);
+	 			 fan_2_run(70);
+	 		 }
+	 		 else if(Rx_Buffer[i] =='d' && Rx_Buffer[i+1]=='a'&& Rx_Buffer[i+2]=='y'){
+	 			BACK_COLOR=BLACK;
+	 			POINT_COLOR=BLUE;
+	 			tft_puts14x24(240,160,(int8_t*)"OFF  ",TFT_STRING_MODE_BACKGROUND);
+	 			nightmode = 0;
+	 			fan_1_run(40);
+	 			fan_2_run(40);
+	 		 }
+	 	}
+	 	for (int i =0; i<=strlen(Rx_Buffer); i++){
+	 		if(Rx_Buffer[i] =='f' && Rx_Buffer[i+1]=='r'&& Rx_Buffer[i+2]=='e'){
+	 			BACK_COLOR=BLACK;
+	 			POINT_COLOR=BLUE;
+	 			tft_puts14x24(260,100,(int8_t*)"Fresh_air     ",TFT_STRING_MODE_BACKGROUND);
+	 			filmode = 1;
+	 		 }
+	 		else if(Rx_Buffer[i] =='i' && Rx_Buffer[i+1]=='n'&& Rx_Buffer[i+2]=='d'){
+	 			BACK_COLOR=BLACK;
+	 			POINT_COLOR=BLUE;
+	 			tft_puts14x24(260,100,(int8_t*)"Indoor     ",TFT_STRING_MODE_BACKGROUND);
+	 			filmode = 0;
+	 		}
+	 	}
+	 	for (int i =0; i<=strlen(Rx_Buffer); i++){
+	 		if(Rx_Buffer[i] =='m' && Rx_Buffer[i+1]=='a'&& Rx_Buffer[i+2]=='n'){
+	 			BACK_COLOR=BLACK;
+	 			POINT_COLOR=BLUE;
+	 			tft_puts14x24(280,150,(int8_t*)"Manual   ",TFT_STRING_MODE_BACKGROUND);
+	 			ctrmode = 1;
+	 		}
+	 		else if(Rx_Buffer[i] =='a' && Rx_Buffer[i+1]=='u'&& Rx_Buffer[i+2]=='t'){
+	 			BACK_COLOR=BLACK;
+	 			POINT_COLOR=BLUE;
+	 			tft_puts14x24(280,150,(int8_t*)"Auto    ",TFT_STRING_MODE_BACKGROUND);
+	 			ctrmode = 0;
+	 		}
+	 	}
 	  for (int i =0; i<=strlen(Rx_Buffer); i++){
 		  if(Rx_Buffer[i] =='s' && Rx_Buffer[i+1]=='t'&& Rx_Buffer[i+2]=='a'){
 			 //Đọc giá trị từ cảm biến
@@ -398,52 +449,7 @@ void CheckUART(void){
 			  HAL_UART_Transmit(&huart1, (char *) &frame, sizeof(frame), HAL_MAX_DELAY);
 		   }
 	  }
-	for (int i =0; i<=strlen(Rx_Buffer); i++){
-		 if(Rx_Buffer[i] =='n' && Rx_Buffer[i+1]=='i'&& Rx_Buffer[i+2]=='g'){
-			 BACK_COLOR=BLACK;
-			 POINT_COLOR=BLUE;
-			 tft_puts14x24(240,3,(int8_t*)"NIGHT MODE: ON    ",TFT_STRING_MODE_BACKGROUND);
-			 nightmode = 1;
-			 fan_1_run(70);
-			 fan_2_run(70);
-		 }
-		 else if(Rx_Buffer[i] =='d' && Rx_Buffer[i+1]=='a'&& Rx_Buffer[i+2]=='y'){
-			BACK_COLOR=BLACK;
-			POINT_COLOR=BLUE;
-			tft_puts14x24(240,3,(int8_t*)"NIGHT MODE: OFF  ",TFT_STRING_MODE_BACKGROUND);
-			nightmode = 0;
-			fan_1_run(40);
-			fan_2_run(40);
-		 }
-	}
-	for (int i =0; i<=strlen(Rx_Buffer); i++){
-		if(Rx_Buffer[i] =='f' && Rx_Buffer[i+1]=='r'&& Rx_Buffer[i+2]=='e'){
-			BACK_COLOR=BLACK;
-			POINT_COLOR=BLUE;
-			tft_puts14x24(260,3,(int8_t*)"Filter:Fresh_air     ",TFT_STRING_MODE_BACKGROUND);
-			filmode = 1;
-		 }
-		else if(Rx_Buffer[i] =='i' && Rx_Buffer[i+1]=='n'&& Rx_Buffer[i+2]=='d'){
-			BACK_COLOR=BLACK;
-			POINT_COLOR=BLUE;
-			tft_puts14x24(260,3,(int8_t*)"Filter:Indoor     ",TFT_STRING_MODE_BACKGROUND);
-			filmode = 0;
-		}
-	}
-	for (int i =0; i<=strlen(Rx_Buffer); i++){
-		if(Rx_Buffer[i] =='m' && Rx_Buffer[i+1]=='a'&& Rx_Buffer[i+2]=='n'){
-			BACK_COLOR=BLACK;
-			POINT_COLOR=BLUE;
-			tft_puts14x24(280,3,(int8_t*)"Mode CTRL:Manual   ",TFT_STRING_MODE_BACKGROUND);
-			ctrmode = 1;
-		}
-		else if(Rx_Buffer[i] =='a' && Rx_Buffer[i+1]=='u'&& Rx_Buffer[i+2]=='t'){
-			BACK_COLOR=BLACK;
-			POINT_COLOR=BLUE;
-			tft_puts14x24(280,3,(int8_t*)"Mode CTRL:Auto    ",TFT_STRING_MODE_BACKGROUND);
-			ctrmode = 0;
-		}
-	}
+
 	  Transfer_cplt = 0;
 	  HAL_Delay(400);
   }
@@ -471,6 +477,52 @@ void IAQcolor(void){
 	}
 	if (count == 500){
 		count = 0;
+	}
+}
+
+void FormInterface(void) {
+	/*BACK_COLOR=BLACK;
+	POINT_COLOR=BLUE;
+	tft_puts14x24(220,3,(int8_t*)"Speed:",TFT_STRING_MODE_BACKGROUND);
+	tft_puts14x24(260,3,(int8_t*)"Filter:",TFT_STRING_MODE_BACKGROUND);
+	tft_puts14x24(240,3,(int8_t*)"Night Mode:",TFT_STRING_MODE_BACKGROUND);
+	tft_puts14x24(200,3,(int8_t*)"Power:",TFT_STRING_MODE_BACKGROUND);
+	tft_puts14x24(280,3,(int8_t*)"Mode Ctrl:",TFT_STRING_MODE_BACKGROUND);*/
+	 if (num == 0 && FLAG == 1){
+			__HAL_TIM_SET_COUNTER(&htim2, 0);
+			 BACK_COLOR=BLACK;
+			 POINT_COLOR=RED;
+			 tft_puts14x24(200,3,(int8_t*)"                        ",TFT_STRING_MODE_BACKGROUND);
+			 tft_puts14x24(220,3,(int8_t*)"                        ",TFT_STRING_MODE_BACKGROUND);
+			 tft_puts14x24(240,3,(int8_t*)"                        ",TFT_STRING_MODE_BACKGROUND);
+			 tft_puts14x24(260,3,(int8_t*)"                        ",TFT_STRING_MODE_BACKGROUND);
+			 FLAG = 0;
+		  	}
+		 else if (num == 1){
+			  BACK_COLOR=BLACK;
+			  POINT_COLOR=RED;
+			  tft_puts14x24(200,3,(int8_t*)"POWER: ON      ",TFT_STRING_MODE_BACKGROUND);
+		  }
+		  else if (num == 2){
+			  BACK_COLOR=BLACK;
+			  POINT_COLOR=RED;
+			  tft_puts14x24(200,3,(int8_t*)"POWER: OFF      ",TFT_STRING_MODE_BACKGROUND);
+		  }
+
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM2)
+	{
+		num=0;
+		FLAG = 1;
+		//BACK_COLOR=BLACK;
+		 //POINT_COLOR=RED;
+		//tft_puts14x24(200,3,(int8_t*)"                         ",TFT_STRING_MODE_BACKGROUND);
+		//tft_puts14x24(220,3,(int8_t*)"                         ",TFT_STRING_MODE_BACKGROUND);
+		//tft_puts14x24(240,3,(int8_t*)"                         ",TFT_STRING_MODE_BACKGROUND);
+		//tft_puts14x24(260,3,(int8_t*)"                         ",TFT_STRING_MODE_BACKGROUND);
 	}
 }
 /**
@@ -677,9 +729,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 1599;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
+  htim2.Init.Period = 999999;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
